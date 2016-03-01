@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
+    "postinstall": "npm link ../autoshadow",
+    "prepackage": "npm install",
     "package": "electron-packager . Autoshadow --platform=darwin --arch=x64 --version=0.36.7 --out=.."
   },
   "author": "",
