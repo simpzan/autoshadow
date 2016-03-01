@@ -13,7 +13,7 @@ const autoshadow = require('autoshadow');
 const configManager = autoshadow.configManager;
 
 function autosetServer() {
-    info("autosetServer");
+    info("autoconfig start");
     notifier.notify({
         title: "testing servers",
         message: "msg"
@@ -27,7 +27,7 @@ function autosetServer() {
             message: configManager.getCurrentServer().server
         })
     }, function(err) {
-        error(err)
+        error("error!", err, err.stack)
         notifier.notify({
             title: "config failed",
             message: err

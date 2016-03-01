@@ -112,11 +112,13 @@ function isConnectable() {
 const request = require('request');
 
 function *autosetServer() {
+    debug("autosetServer start");
     const servers = configManager.getServers();
     const count = servers.length;
     const currentIndex = configManager.getCurrentServer().index;
-    for(let i = currentIndex + 1; i !== currentIndex; i = (i + 1) % count) {
+    for(let i = currentIndex; i !== currentIndex - 1; i = (i + 1) % count) {
         const server = servers[i];
+        info("server", i, server);
         yield server;
         yield run(server);
         const result = yield isConnectable();
@@ -126,6 +128,7 @@ function *autosetServer() {
             return;
         }
     }
+    debug("autosetServer done")
 }
 
 module.exports = {
