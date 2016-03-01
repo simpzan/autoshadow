@@ -1,0 +1,17 @@
+{
+  "name": "autoshadow.desktop",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "package": "electron-packager . Autoshadow --platform=darwin --arch=x64 --version=0.36.7 --out=.."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "co": "^4.6.0",
+    "node-notifier": "^4.5.0"
+  }
+}

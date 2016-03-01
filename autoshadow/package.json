@@ -1,0 +1,19 @@
+{
+  "name": "autoshadow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "postinstall": "if [ ! -d shadowsocks ]; then git clone https://github.com/simpzan/shadowsocks.git; fi",
+    "start": "node bin/cli.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "co": "^4.6.0",
+    "request": "^2.69.0",
+    "winston": "^2.1.1"
+  },
+  "devDependencies": {}
+}
