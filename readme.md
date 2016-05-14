@@ -16,7 +16,14 @@ run a ss instance with a ss account as a socket proxy, and run polipo to convert
 
 ## components of this tool 
 - the core logic in autoshadow dir.
-- the ui in desktop dir.
+- the ui in desktop dir. the ui is just a system tray icon, and a menu when clicking it.
+
+## the menu and features
+- status: the current configed ss account
+- refresh: try to find the next usable ss account, and apply it as config.
+- servers: a list of ss accounts
+- import: import the accounts json file exported from fyzhuji. 
+- exit: quit the tool
 
 ## ss service provider
 www.fyzhuji.com
