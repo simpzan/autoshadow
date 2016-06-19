@@ -18,16 +18,16 @@ function autosetServer() {
         title: "testing servers",
         message: "msg"
     });
-    statusMenuItem.enabled = false
-    var co = require('co');
-    co(autoshadow.autosetServer).then(function() {
+    statusMenuItem.enabled = false;
+    autoshadow.autosetServer().then(function() {
+        statusMenuItem.enabled = true;
         info('autoconfig done');
         notifier.notify({
             title: "config done",
             message: configManager.getCurrentServer().server
         })
     }, function(err) {
-        error("error!", err, err.stack)
+        error("autoconfig error!", err, err.stack)
         notifier.notify({
             title: "config failed",
             message: err

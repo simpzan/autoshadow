@@ -13,7 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "co": "^4.6.0",
     "node-notifier": "^4.5.0"
   }
 }
