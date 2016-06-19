@@ -95,27 +95,32 @@ function quit() {
     stopHttpServer();
 }
 
+const isConnectedToInternet = (url, proxy, timeout = 1000) => new Promise((resolve, reject) => {
+    const params = {url, timeout, proxy};
+    const request = require('request');
+    request(params, function (err, response, body) {
+        const result = !err && response.statusCode == 200;
+        log.d("request", url, proxy, result);
+        if (result) resolve(result);
+        else reject(err);
+    });
+});
+
 function isConnectable() {
     const proxy = 'http://localhost:' + configManager.getHttpPort();
-    const params = {
-        'url':  'http://www.google.com',
-        'timeout': 1000,
-        'proxy': proxy
-    };
-    return new Promise(function(resolve, reject) {
-        request(params, function (err, response, body) {
-            const result = !err && response.statusCode == 200;
-            resolve(result);
-        });
-    })
+    const url = 'http://www.google.com';
+    return isConnectedToInternet(url, proxy);
 }
-const request = require('request');
 
 function *autosetServer() {
     debug("autosetServer start");
+    const connectedToInternet = yield isConnectedToInternet("http://www.baidu.com");
+    if (!connectedToInternet) return Promise.reject("not connectedToInternet!");
+
     const servers = configManager.getServers();
     const count = servers.length;
     const currentIndex = configManager.getCurrentServer().index;
+
     for(let i = currentIndex; i !== currentIndex - 1; i = (i + 1) % count) {
         const server = servers[i];
         info("server", i, server);
@@ -125,10 +130,11 @@ function *autosetServer() {
         if (result) {
             configManager.setCurrentServerIndex(i);
             info("using server: " + server.server);
-            return;
+            return Promise.resolve();
         }
     }
     debug("autosetServer done")
+    return Promise.reject("no usable config found!");
 }
 
 module.exports = {

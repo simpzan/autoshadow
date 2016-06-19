@@ -8,7 +8,7 @@
     "start": "electron .",
     "postinstall": "ln -s ../../autoshadow node_modules; cd node_modules/autoshadow && npm install",
     "prepackage": "npm install",
-    "package": "electron-packager . Autoshadow --platform=darwin --arch=x64 --version=0.36.7 --out=.. --overwrite"
+    "package": "electron-packager . Autoshadow --platform=darwin --arch=x64 --version=1.2.3 --out=.. --overwrite"
   },
   "author": "",
   "license": "ISC",
