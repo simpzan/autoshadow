@@ -95,19 +95,29 @@ function quit() {
     stopHttpServer();
 }
 
-const isConnected = (url, proxy, timeout = 1000) => new Promise((resolve, reject) => {
-    const params = {url, timeout, proxy};
+const Agent = require("socks5-http-client/lib/Agent");
+const isConnected = (url, socksPort, timeout = 1000) => new Promise((resolve, reject) => {
+    const params = {
+        url,
+        timeout
+    };
+    if (socksPort) {
+        params.agentClass = Agent;
+        params.agentOptions = {
+            socksPort: socksPort
+        }
+    }
     const request = require('request');
     request(params, function (err, response, body) {
         const result = !err && response.statusCode == 200;
-        log.d("request", url, proxy, result);
+        log.d("request", url, socksPort, result);
         if (result) resolve(result);
         else reject(err);
     });
 });
 
 function isServerConnectable(server) {
-    const proxy = 'http://localhost:' + configManager.getHttpPort();
+    const proxy = configManager.getLocalPort();
     const url = 'http://www.google.com';
     return run(server).then(() => isConnected(url, proxy));
 }
