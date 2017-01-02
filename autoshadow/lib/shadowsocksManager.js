@@ -3,146 +3,83 @@
 const utils = require('./utils')
 const log = utils.createLogger('shadowsocksManager');
 
-const configManager = require('./configManager.js');
+const configManager = require('./configManager');
+const isConnectable = require("./isConnectable");
 
-function runCmd(cmd, prefix) {
-    log.d("running cmd:\n" + cmd)
+function runCmd(cmd) {
+    log.d(`running cmd:\n${cmd}`)
     const args = cmd.split(" ");
-    const ss = require('child_process').spawn(args[0], args.slice(1));
+    return require('child_process').spawn(args[0], args.slice(1));
+}
 
-    function stopCmd() {
-        return new Promise(function(resolve, reject) {
-            ss.on("exit", function(err) {
-                if (err) reject(err)
-                else resolve();
-            })
-            ss.kill();
-        })
-    }
+function getCmd(config) {
+    const cmdFile = `python ${__dirname}/../shadowsocks/shadowsocks/local.py`;
+    const localPort = configManager.getLocalPort();
+    const args = `-s ${config.server} -p ${config.server_port} -m ${config.method} -k ${config.password} -l ${localPort}`
+    return `${cmdFile} ${args}`
+}
+
+
+let ss;
+function stopProxy() {
     return new Promise(function(resolve, reject) {
-        function cmdOutputHandler(data) {
-            if (!isScanning) log.i(prefix, data.toString().trim());
-            resolve(stopCmd);
-        }
-        ss.stdout.on('data', cmdOutputHandler);
+        if (!ss) return resolve();
+
+        ss.once("exit", function(err) {
+            if (err) reject(err)
+            else resolve();
+        })
+        ss.kill();
+        ss = null;
+    });
+}
+
+function startProxy(config) {
+    stopProxy();
+    const cmd = getCmd(config);
+    ss = runCmd(cmd);
+
+    return new Promise((resolve, reject) => {
+        // ss.stdout.once('data', resolve);
+        // ss.stdout.on('data', cmdOutputHandler);
+        ss.stderr.once('data', resolve);
         ss.stderr.on('data', cmdOutputHandler);
-        ss.on("error", function(err) {
+        ss.once("error", (err) => {
             log.e("failed to run cmd", err, cmd);
             reject(err)
         });
-    })
-}
 
-function start(config) {
-    log.d("start", config)
-    function getCmd(config) {
-        const cmdFile = "python " + __dirname + "/../shadowsocks/shadowsocks/local.py"
-        const localPort = configManager.getLocalPort();
-        const args = `-s ${config.server} -p ${config.server_port} -m ${config.method} -k ${config.password} -l ${localPort}`
-        const result = `${cmdFile} ${args}`
-        return result;
-    }
-    const cmd = getCmd(config)
-    return runCmd(cmd, "shadowsocks")
-}
-
-function stop(handler) {
-    handler()
-}
-
-let httpServer;
-function startHttpServer() {
-    if (httpServer) {
-        return Promise.resolve();
-    }
-
-    const cmd = "/usr/local/bin/polipo socksParentProxy=localhost:" + configManager.getLocalPort() +
-            " proxyPort=" + configManager.getHttpPort();
-    return runCmd(cmd, "polipo").then(function(handler) {
-        httpServer = handler;
-        return handler;
-    });
-}
-function stopHttpServer() {
-    httpServer && httpServer();
-    httpServer = null;
-}
-
-let handler;
-function quitSS() {
-    handler && handler();
-    handler = null;
-}
-function run(config) {
-    quitSS();
-
-    config = config || configManager.getCurrentServer();
-    if (!config) {
-        return log.e("no server available");
-    }
-    log.i("running with config:" + config.server);
-    return start(config).then(stopHandler => {
-        handler = stopHandler;
-        return startHttpServer();
-    })
-}
-function quit() {
-    quitSS();
-    stopHttpServer();
-}
-
-const Agent = require("socks5-http-client/lib/Agent");
-const isConnected = (url, socksPort, timeout = 1000) => new Promise((resolve, reject) => {
-    const params = {
-        url,
-        timeout
-    };
-    if (socksPort) {
-        params.agentClass = Agent;
-        params.agentOptions = {
-            socksPort: socksPort
+        function cmdOutputHandler(data) {
+            if (!isScanning) utils.log("shadowsocks", data.toString().trim());
         }
-    }
-    const request = require('request');
-    request(params, function (err, response, body) {
-        const result = !err && response.statusCode == 200;
-        log.d("request", url, socksPort, result);
-        if (result) resolve(result);
-        else reject(err);
     });
-});
+}
 
-function isServerConnectable(server) {
+
+function isProxyConnectable(server) {
     const proxy = configManager.getLocalPort();
     const url = 'http://www.google.com';
-    return run(server).then(() => isConnected(url, proxy));
+    return startProxy(server).then(() => isConnectable(url, proxy));
 }
 
-function generateSequence(count, start) {
-    if (start >= count || start < 0) start = 0;
-    const result = [];
-    for (let i = 0; i < count; ++i) {
-        result.push(i + start);
-    }
-    return result.map(n => n % count);
-}
 
 let isScanning = false;
 function autoscan() {
     return new Promise((resolve, reject) => {
         const servers = configManager.getServers();
         const currentIndex = configManager.getCurrentServer().index;
-        const sequence = generateSequence(servers.length, currentIndex);
+        const sequence = utils.generateSequence(servers.length, currentIndex);
         const async = require('async')
         isScanning = true;
         async.detectSeries(sequence, (index, callback) => {
             const server = servers[index];
             log.i("checking", index, server.server);
-            isServerConnectable(server).then(
+            isProxyConnectable(server).then(
                 () => callback(null, true),
                 () => callback(null, false)
             );
         }, (err, result) => {
+            log.i("autoscan done", err, result);
             isScanning = false;
             if (err) {
                 reject(err);
@@ -153,15 +90,10 @@ function autoscan() {
         });
     });
 }
-function autosetServer() {
-    log.d("autosetServer start");
-    return isConnected("http://www.baidu.com").then(() => {
-        return autoscan();
-    });
-}
+
 
 module.exports = {
-    run,
-    quit,
-    autosetServer,
+    run: startProxy,
+    quit: stopProxy,
+    autosetServer: autoscan,
 }

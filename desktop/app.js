@@ -12,7 +12,8 @@ const debug = console.log.bind(null, prefix)
 const info = console.info.bind(null, prefix)
 
 const autoshadow = require('autoshadow');
-autoshadow.run();
+const configManager = autoshadow.configManager;
+autoshadow.run(configManager.getCurrentServer());
 autoshadow.configManager.onConfigUpdated(updateMenu);
 
 app.dock.hide()

@@ -51,7 +51,7 @@ function importServers() {
         const file = files[0];
         info("selected file: " + file);
         configManager.importServers(files[0]);
-        autoshadow.run();
+        autoshadow.run(configManager.getCurrentServer());
     });
 }
 
