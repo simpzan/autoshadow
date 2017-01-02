@@ -2,10 +2,6 @@
 
 const utils = require('./utils')
 const log = utils.createLogger('configManager');
-const error = log.e;
-const warn = log.w;
-const debug = log.d;
-const info = log.i;
 
 const fs = require('fs');
 function getConfigFile() {
@@ -17,7 +13,7 @@ function loadConfig() {
         const fileContent = fs.readFileSync(getConfigFile());
         return JSON.parse(fileContent);
     } catch(e) {
-        warn("faile to load config file: " + e);
+        log.w("faile to load config file: " + e);
         return {
             servers: []
         }
@@ -35,7 +31,7 @@ function importServers(file) {
     const newServers = servers.filter(function(config, index) {
         return isNewServer(config)
     });
-    info("new servers", newServers.length)
+    log.i("new servers", newServers.length)
     config.servers = config.servers.concat(newServers);
     config.currentIndex = config.currentIndex || 0;
     event.emit("updated")
@@ -62,7 +58,7 @@ function getCurrentServer() {
 
 function setCurrentServerIndex(index) {
     if (index < 0 || index >= config.servers.length) {
-        return error("failed to set current index, invalid index: " + index);
+        return log.e("failed to set current index, invalid index: " + index);
     }
     config.currentIndex = index;
     event.emit("updated");

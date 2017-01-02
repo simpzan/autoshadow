@@ -13,8 +13,8 @@ function createLogger(prefix) {
     }
 }
 var winston = require('winston');
-winston.add(winston.transports.File, { filename: '/Users/simpzan/js/autoshadow/autoshadow.log' });
-winston.level = 'info';
+winston.add(winston.transports.File, { filename: '/tmp/autoshadow.log' });
+winston.level = 'debug';
 
 module.exports = {
     getUserHome,

@@ -2,15 +2,11 @@
 
 const utils = require('./utils')
 const log = utils.createLogger('shadowsocksManager');
-const error = log.e;
-const warn = log.w;
-const debug = log.d;
-const info = log.i;
 
 const configManager = require('./configManager.js');
 
 function runCmd(cmd, prefix) {
-    debug("running cmd:\n" + cmd)
+    log.d("running cmd:\n" + cmd)
     const args = cmd.split(" ");
     const ss = require('child_process').spawn(args[0], args.slice(1));
 
@@ -25,20 +21,20 @@ function runCmd(cmd, prefix) {
     }
     return new Promise(function(resolve, reject) {
         function cmdOutputHandler(data) {
-            if (!isScanning) info(prefix, data.toString().trim());
+            if (!isScanning) log.i(prefix, data.toString().trim());
             resolve(stopCmd);
         }
         ss.stdout.on('data', cmdOutputHandler);
         ss.stderr.on('data', cmdOutputHandler);
         ss.on("error", function(err) {
-            error("failed to run cmd", err, cmd);
+            log.e("failed to run cmd", err, cmd);
             reject(err)
         });
     })
 }
 
 function start(config) {
-    debug("start", config)
+    log.d("start", config)
     function getCmd(config) {
         const cmdFile = "python " + __dirname + "/../shadowsocks/shadowsocks/local.py"
         const localPort = configManager.getLocalPort();
@@ -82,9 +78,9 @@ function run(config) {
 
     config = config || configManager.getCurrentServer();
     if (!config) {
-        return error("no server available");
+        return log.e("no server available");
     }
-    info("running with config:" + config.server);
+    log.i("running with config:" + config.server);
     return start(config).then(stopHandler => {
         handler = stopHandler;
         return startHttpServer();
@@ -158,7 +154,7 @@ function autoscan() {
     });
 }
 function autosetServer() {
-    debug("autosetServer start");
+    log.d("autosetServer start");
     return isConnected("http://www.baidu.com").then(() => {
         return autoscan();
     });
