@@ -43,8 +43,7 @@ function manuallySetServer(server, index) {
 
 function importServers() {
     info("importServers")
-    var dialog = require('dialog');
-    dialog.showOpenDialog({
+    electron.dialog.showOpenDialog({
         properties: ['openFile']
     }, function(files) {
         if (!files) return;
