@@ -19,20 +19,20 @@ function autosetServer() {
         message: "msg"
     });
     statusMenuItem.enabled = false;
-    autoshadow.autosetServer().then(function() {
+    autoshadow.autosetServer().then(() => {
         statusMenuItem.enabled = true;
         info('autoconfig done');
         notifier.notify({
             title: "config done",
             message: configManager.getCurrentServer().server
-        })
-    }, function(err) {
+        });
+    }).catch((err) => {
         error("autoconfig error!", err, err.stack)
         notifier.notify({
             title: "config failed",
             message: err
-        })
-    })
+        });
+    });
 }
 
 function manuallySetServer(server, index) {

@@ -83,6 +83,8 @@ function autoscan() {
             isScanning = false;
             if (err) {
                 reject(err);
+            } else if (result === undefined) {
+                reject(new Error(`no usable config found!`));
             } else {
                 resolve(result);
                 configManager.setCurrentServerIndex(result);
