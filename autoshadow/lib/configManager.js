@@ -28,14 +28,13 @@ const config = loadConfig();
 function importServers(file) {
     const json = require(file);
     const servers = json.configs;
-    const newServers = servers.filter(function(config, index) {
-        return isNewServer(config)
-    });
+    const newServers = servers.filter(isNewServer);
     log.i("new servers", newServers.length)
     config.servers = config.servers.concat(newServers);
     config.currentIndex = config.currentIndex || 0;
     event.emit("updated")
     saveConfig();
+    return newServers;
 
     function isNewServer(server) {
         return config.servers.every(function(config) {
@@ -74,12 +73,9 @@ function getHttpPort() {
 
 const EventEmitter = require('events').EventEmitter;
 const event = new EventEmitter();
-function onConfigUpdated(fn) {
-    event.on("updated", fn);
-}
 
 module.exports = {
-    onConfigUpdated,
+    event,
     getServers,
     getCurrentServer,
     setCurrentServerIndex,

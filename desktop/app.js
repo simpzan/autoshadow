@@ -13,8 +13,13 @@ const info = console.info.bind(null, prefix)
 
 const autoshadow = require('autoshadow');
 const configManager = autoshadow.configManager;
-autoshadow.run(configManager.getCurrentServer());
-autoshadow.configManager.onConfigUpdated(updateMenu);
+const config = configManager.getCurrentServer();
+if (config) {
+    autoshadow.run(config);
+}
+configManager.event.on("updated", () => {
+    updateMenu();
+});
 
 app.dock.hide()
 app.on('ready', setupTray);

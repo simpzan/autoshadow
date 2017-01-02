@@ -12,26 +12,22 @@ const debug = console.log.bind(null, prefix)
 const autoshadow = require('autoshadow');
 const configManager = autoshadow.configManager;
 
+function notifyUser(message) {
+    const title = 'autoshadow';
+    notifier.notify({ title, message });
+}
+
 function autosetServer() {
     info("autoconfig start");
-    notifier.notify({
-        title: "testing servers",
-        message: "msg"
-    });
+    notifyUser("testing servers");
     statusMenuItem.enabled = false;
     autoshadow.autosetServer().then(() => {
         statusMenuItem.enabled = true;
         info('autoconfig done');
-        notifier.notify({
-            title: "config done",
-            message: configManager.getCurrentServer().server
-        });
+        notifyUser(`using config ${configManager.getCurrentServer().server}`);
     }).catch((err) => {
         error("autoconfig error!", err, err.stack)
-        notifier.notify({
-            title: "config failed",
-            message: err
-        });
+        notifyUser(`config failed, ${err}`);
     });
 }
 
@@ -50,7 +46,8 @@ function importServers() {
 
         const file = files[0];
         info("selected file: " + file);
-        configManager.importServers(files[0]);
+        const newServers = configManager.importServers(files[0]);
+        notifyUser(`${newServers.length} servers imported`);
         autoshadow.run(configManager.getCurrentServer());
     });
 }
