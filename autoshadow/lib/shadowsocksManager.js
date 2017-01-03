@@ -12,10 +12,9 @@ function runCmd(cmd) {
     return require('child_process').spawn(args[0], args.slice(1));
 }
 
-function getCmd(config) {
+function getShadowsocksCmd(c) {
     const cmdFile = `python ${__dirname}/../shadowsocks/shadowsocks/local.py`;
-    const localPort = configManager.getLocalPort();
-    const args = `-s ${config.server} -p ${config.server_port} -m ${config.method} -k ${config.password} -l ${localPort}`
+    const args = `-s ${c.server} -p ${c.server_port} -m ${c.method} -k ${c.password} -l ${c.local_port}`
     return `${cmdFile} ${args}`
 }
 
@@ -36,7 +35,7 @@ function stopProxy() {
 
 function startProxy(config) {
     stopProxy();
-    const cmd = getCmd(config);
+    const cmd = getShadowsocksCmd(config);
     ss = runCmd(cmd);
 
     return new Promise((resolve, reject) => {
@@ -57,9 +56,10 @@ function startProxy(config) {
 
 
 function isProxyConnectable(server) {
-    const proxy = configManager.getLocalPort();
+    const localPort = configManager.getLocalPort();
+    server.local_port = localPort;
     const url = 'http://www.google.com';
-    return startProxy(server).then(() => isConnectable(url, proxy));
+    return startProxy(server).then(() => isConnectable(url, localPort));
 }
 
 
